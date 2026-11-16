@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Quick smoke test. Usage: ./test.sh [base_url]
-BASE="${1:-http://localhost}"
+BASE="${1:-http://localhost:8080}"
 echo "== Health check =="
 curl -s "$BASE/healthz"; echo
 echo "== Shorten https://www.redhat.com =="

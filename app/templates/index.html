@@ -1,0 +1,224 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Shortener</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Times New Roman", Times, serif;
+            background-color: #e8e4dc;
+            color: #2f2a26;
+            margin: 0;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 650px;
+            margin: 60px auto;
+            background-color: #f7f4ee;
+            border: 1px solid #b8b0a5;
+            padding: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 32px;
+            font-weight: normal;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 17px;
+            color: #5a534c;
+            margin-bottom: 30px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 18px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            font-family: inherit;
+            font-size: 16px;
+            border: 1px solid #9f978c;
+            background-color: #fcfbf8;
+            color: #2f2a26;
+        }
+
+        button {
+            padding: 10px 18px;
+            font-family: inherit;
+            font-size: 16px;
+            border: 1px solid #7d8b99;
+            background-color: #c8d2dc;
+            color: #2f2a26;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        button:hover {
+            background-color: #b8c4cf;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: wait;
+        }
+
+        .result {
+            display: none;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #b8b0a5;
+        }
+
+        .short-link {
+            display: block;
+            color: #4e657a;
+            font-size: 18px;
+            overflow-wrap: anywhere;
+            margin-top: 10px;
+        }
+
+        #error {
+            color: #8b3f3f;
+            font-size: 16px;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 14px;
+            color: #6a635b;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>URL Shortener</h1>
+
+    <p class="subtitle">
+        Enter a long URL to generate a shorter link.
+    </p>
+
+    <form id="shorten-form">
+        <label for="url">Enter URL</label>
+
+        <input
+            type="url"
+            id="url"
+            placeholder="https://example.com/long-url"
+            required
+        >
+
+        <button type="submit" id="shorten-btn">
+            Shorten URL
+        </button>
+    </form>
+
+    <p id="error" role="alert"></p>
+
+    <div class="result" id="result">
+
+        <label>Shortened URL</label>
+
+        <a id="short-link"
+           class="short-link"
+           target="_blank"
+           rel="noopener noreferrer">
+        </a>
+
+        <button id="copy-btn" type="button">
+            Copy Link
+        </button>
+
+    </div>
+
+    <div class="footer">
+        Flask | Redis | Nginx | Podman
+    </div>
+
+</div>
+
+<script>
+    let currentShortURL = "";
+
+    const form = document.getElementById("shorten-form");
+    const error = document.getElementById("error");
+    const result = document.getElementById("result");
+    const shortenBtn = document.getElementById("shorten-btn");
+
+    form.addEventListener("submit", async function(event) {
+        event.preventDefault();
+
+        const url = document.getElementById("url").value.trim();
+
+        error.textContent = "";
+        result.style.display = "none";
+        shortenBtn.disabled = true;
+        shortenBtn.textContent = "Processing...";
+
+        try {
+            const response = await fetch("/api/shorten", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ url: url })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || "Unable to shorten URL");
+            }
+
+            currentShortURL = data.short_url;
+
+            const link = document.getElementById("short-link");
+            link.href = currentShortURL;
+            link.textContent = currentShortURL;
+
+            document.getElementById("copy-btn").textContent = "Copy Link";
+
+            result.style.display = "block";
+
+        } catch (err) {
+            error.textContent = err.message;
+        } finally {
+            shortenBtn.disabled = false;
+            shortenBtn.textContent = "Shorten URL";
+        }
+    });
+
+    document.getElementById("copy-btn")
+        .addEventListener("click", async function() {
+
+            try {
+                await navigator.clipboard.writeText(currentShortURL);
+                this.textContent = "Copied";
+            } catch (err) {
+                error.textContent =
+                    "Please copy the link manually.";
+            }
+
+        });
+</script>
+
+</body>
+</html>

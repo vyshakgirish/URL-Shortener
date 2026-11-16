@@ -4,7 +4,7 @@ import string
 from urllib.parse import urlparse
 
 import redis
-from flask import Flask, abort, jsonify, redirect, request
+from flask import Flask, abort, jsonify, redirect, request, render_template
 
 app = Flask(__name__)
 r = redis.Redis(host=os.getenv("REDIS_HOST", "redis"), port=6379, decode_responses=True)
@@ -12,6 +12,9 @@ r = redis.Redis(host=os.getenv("REDIS_HOST", "redis"), port=6379, decode_respons
 ALPHABET = string.ascii_letters + string.digits
 BASE_URL = os.getenv("BASE_URL", "http://localhost").rstrip("/")
 
+@app.get("/")
+def home():
+    return render_template("index.html")
 
 def make_code(length=6):
     return "".join(secrets.choice(ALPHABET) for _ in range(length))

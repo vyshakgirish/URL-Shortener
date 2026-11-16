@@ -1,6 +1,6 @@
 services:
   redis:
-    image: redis:7-alpine
+    image: docker.io/library/redis:7-alpine
     command: ["redis-server", "--appendonly", "yes"]
     volumes:
       - redis-data:/data
@@ -16,7 +16,7 @@ services:
     build: ./app
     environment:
       REDIS_HOST: redis
-      BASE_URL: http://localhost   # change to your server's hostname/IP
+      BASE_URL: http://localhost:8080   # change to your server's hostname/IP
     depends_on:
       redis:
         condition: service_healthy
@@ -24,9 +24,9 @@ services:
     restart: unless-stopped
 
   nginx:
-    image: nginx:1.27-alpine
+    image: docker.io/library/nginx:1.27-alpine
     ports:
-      - "80:80"
+      - "8080:80"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro,Z
     depends_on: [app]
